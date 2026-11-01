@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>教室座位表</title>
+<style>
+/* ===== 变量与基础 ===== */
+:root{
+  --seat-w:94px;
+  --seat-h:54px;
+  --seat-gap:10px;
+  --group-gap:18px;
+  --ink:#2b332e;
+  --muted:#7d8377;
+  --line:#e4d9c6;
+  --paper:#fffdf8;
+  --accent:#2f6f5e;
+  --accent-dark:#24594b;
+  --accent-soft:#e6efea;
+  --board:#1f3d34;
+  --wood:#c9a878;
+  --danger:#b4544a;
+  --shadow:0 24px 60px -34px rgba(70,55,25,.5);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  min-height:100vh;
+  color:var(--ink);
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+  background:
+    radial-gradient(1100px 480px at 8% -12%, #e8efe8 0%, transparent 62%),
+    radial-gradient(900px 520px at 102% -4%, #f5ead9 0%, transparent 58%),
+    #f5f1e8;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit}
+input{font-family:inherit}
+
+/* ===== 顶部栏 ===== */
+.topbar{
+  max-width:1280px;
+  margin:0 auto;
+  padding:22px 28px 4px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px 24px;
+  flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:14px;min-width:260px}
+.brand-mark{
+  width:46px;height:46px;flex:0 0 46px;
+  display:grid;place-items:center;
+  border-radius:12px;
+  background:linear-gradient(145deg,#357a67,#2a6152);
+  color:#fff;font-size:20px;font-weight:700;letter-spacing:2px;
+  box-shadow:0 10px 18px -12px rgba(40,90,74,.8), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.brand h1{margin:0;font-size:24px;font-weight:700;letter-spacing:.5px}
+.sub{margin:5px 0 0;font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.dot-sep{opacity:.45}
+
+.top-right{
+  display:flex;align-items:center;gap:14px;
+  flex-wrap:wrap;justify-content:flex-end;
+}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  background:#fffdf7;border:1px solid var(--line);
+  border-radius:999px;padding:6px 12px;
+  font-size:12.5px;color:#66705f;white-space:nowrap;
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset;
+}
+.chip b{color:var(--accent);font-weight:600;margin-left:2px}
+
+.actions{display:flex;gap:9px;flex-wrap:wrap}
+.btn{
+  border:1px solid var(--line);
+  background:var(--paper);
+  color:#48514a;
+  border-radius:10px;
+  padding:9px 15px;
+  font-size:13.5px;
+  cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+  transition:transform .12s, box-shadow .12s, background .12s, border-color .12s;
+  box-shadow:0 2px 5px -3px rgba(70,55,25,.35), inset 0 1px 0 rgba(255,255,255,.8);
+  line-height:1.2;
+}
+.btn:hover{transform:translateY(-1px);border-color:#d2c4ab;background:#fff}
+.btn:active{transform:translateY(0)}
+.btn-primary{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+  box-shadow:0 8px 16px -12px rgba(35,90,74,.9);
+}
+.btn-primary:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
+.btn-danger-ghost{color:var(--danger);border-color:#eccec9;background:#fff8f6}
+.btn-danger-ghost:hover{background:#fff0ed;border-color:#e4b6af}
+.btn .badge{
+  min-width:20px;height:20px;padding:0 6px;
+  display:inline-grid;place-items:center;
+  border-radius:999px;background:rgba(255,255,255,.22);
+  font-size:11.5px;font-weight:600;
+}
+.icon-btn{
+  width:32px;height:32px;border-radius:9px;border:1px solid var(--line);
+  background:#fffdf8;color:#6b7265;cursor:pointer;font-size:15px;
+  display:grid;place-items:center;
+}
+.icon-btn:hover{background:#f6f0e3}
+
+/* ===== 教室舞台 ===== */
+.stage{max-width:1280px;margin:14px auto 44px;padding:0 28px}
+.classroom{
+  background:linear-gradient(180deg,#fdfaf3 0%,#f8f1e4 100%);
+  border:1px solid #e7dcc9;
+  border-radius:22px;
+  padding:26px 26px 22px;
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+}
+.classroom::after{
+  content:"";
+  position:absolute;inset:0;
+  background-image:radial-gradient(rgba(120,100,60,.045) 1px, transparent 1px);
+  background-size:16px 16px;
+  pointer-events:none;
+}
+
+/* 黑板 */
+.blackboard{
+  position:relative;z-index:1;
+  max-width:880px;
+  margin:0 auto;
+  padding:20px 34px 18px;
+  background:
+    radial-gradient(120% 150% at 18% 0%, rgba(255,255,255,.10), transparent 55%),
+    linear-gradient(160deg,#2a4f43 0%,#1d3b32 60%,#214136 100%);
+  border:10px solid var(--wood);
+  border-radius:10px;
+  color:#eef4ea;
+  box-shadow:
+    0 18px 26px -18px rgba(50,35,10,.55),
+    inset 0 0 70px rgba(0,0,0,.42),
+    inset 0 2px 0 rgba(255,255,255,.06);
+}
+.board-top{
+  display:flex;justify-content:space-between;gap:16px;
+  font-size:11.5px;letter-spacing:1.4px;color:rgba(238,244,234,.58);
+}
+.board-title{
+  text-align:center;
+  margin:8px 0 4px;
+  font-family:"Kaiti SC",KaiTi,"STKaiti","FangSong",serif;
+  font-size:clamp(22px,2.5vw,32px);
+  font-weight:700;
+  letter-spacing:7px;
+  text-shadow:0 0 10px rgba(255,255,255,.16);
+}
+.board-note{
+  text-align:center;
+  font-family:"Kaiti SC",KaiTi,"STKaiti",serif;
+  font-size:12.5px;letter-spacing:4px;
+  color:rgba(238,244,234,.55);
+}
+/* 讲台 */
+.podium{width:min(300px,46%);margin:16px auto 2px;position:relative;z-index:1}
+.podium-body{
+  height:42px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#d8bb92,#c8a474);
+  border:1px solid #b08b58;
+  border-radius:9px 9px 5px 5px;
+  color:#5a4527;
+  font-size:13.5px;font-weight:600;letter-spacing:7px;
+  box-shadow:0 10px 16px -12px rgba(90,60,20,.65), inset 0 1px 0 rgba(255,255,255,.55);
+}
+.podium-foot{
+  width:76%;height:8px;margin:0 auto;
+  background:#b8935f;border-radius:0 0 7px 7px;opacity:.55;
+}
+
+/* 座位区 */
+.seating{
+  position:relative;z-index:1;
+  margin-top:22px;
+  padding:14px 4px 8px;
+  display:flex;gap:16px;
+  overflow-x:auto;
+}
+.row-rail{
+  flex:0 0 46px;
+  display:flex;flex-direction:column;gap:var(--seat-gap);
+  padding-top:49px;
+  position:sticky;left:0;
+  background:linear-gradient(90deg,#f8f1e4 70%,rgba(248,241,228,0));
+  z-index:2;
+}
+.row-label{
+  height:var(--seat-h);
+  display:flex;align-items:center;justify-content:flex-end;
+  padding-right:9px;
+  font-size:11.5px;color:#948d7b;white-space:nowrap;
+}
+.row-label:first-child{color:#7d8674}
+.row-label.extra-label{color:#b0812f}
+
+/* ===== 大组 ===== */
+.groups{display:flex;gap:var(--group-gap);flex:1;min-width:0;align-items:flex-start}
+.group{
+  flex:0 0 auto;
+  padding:12px 12px 14px;
+  background:rgba(255,255,255,.46);
+  border:1px solid #e8ddca;
+  border-radius:14px;
+  display:flex;flex-direction:column;
+  box-shadow:0 3px 10px -8px rgba(80,60,25,.35);
+}
+.group-head{
+  height:26px;
+  margin-bottom:10px;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  font-size:11.5px;letter-spacing:1px;color:#6c6656;
+  white-space:nowrap;
+}
+.group-head .dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--g-color,#4a7fb5);
+  box-shadow:0 0 0 3px rgba(255,255,255,.6);
+}
+.group-head .count{
+  font-size:10.5px;color:#a49b87;letter-spacing:0;
+}
+.rows{display:flex;flex-direction:column;gap:var(--seat-gap)}
+.seat-row{display:flex;gap:8px;align-items:stretch}
+.seat-row.extra-row{position:relative}
+.seat-row.extra-row::before{
+  content:"";
+  position:absolute;left:0;right:0;top:-6px;
+  border-top:1px dashed #e2d0b1;
+}
+
+/* ===== 座位卡 ===== */
+.seat{
+  width:var(--seat-w);
+  height:var(--seat-h);
+  flex:0 0 var(--seat-w);
+  border-radius:10px;
+  background:#fffef9;
+  border:1px solid #e2d9c8;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:600;color:#333b34;
+  letter-spacing:.5px;
+  position:relative;
+  cursor:grab;
+  user-select:none;
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 2px 5px -3px rgba(80,60,20,.3);
+  transition:transform .12s, box-shadow .12s, border-color .12s, background .12s;
+}
+.seat.occupied:hover{
+  transform:translateY(-2px);
+  border-color:var(--g-color,#4a7fb5);
+  box-shadow:0 10px 16px -12px rgba(60,45,20,.6);
+}
+.seat.occupied:active{cursor:grabbing}
+.seat.empty{
+  background:transparent;
+  border:1.5px dashed #d6c9b3;
+  color:#b8ad97;
+  font-size:12px;font-weight:400;
+  cursor:default;
+  box-shadow:none;
+  letter-spacing:1px;
+}
+.seat.extra::after{
+  content:"加";
+  position:absolute;top:4px;right:5px;
+  font-size:9px;font-weight:500;
+  color:#b0812f;letter-spacing:0;
+}
+.seat.extra{border-style:solid;border-color:#e6d3b6;background:#fffdf4}
+.seat.extra-slot{
+  border-style:dashed;border-color:#dfc9a3;
+  background:rgba(255,250,238,.6);color:#bd924a;
+}
+.seat.selected{
+  outline:2px solid var(--accent);outline-offset:2px;
+  border-color:var(--accent);background:#f2f8f5;
+}
+.seat.dragging{opacity:.32}
+.seat.drag-over{
+  background:#fff;
+  outline:2px solid var(--g-color,#4a7fb5);
+  outline-offset:2px;
+  transform:translateY(-2px);
+}
+.seat .name{pointer-events:none;padding:0 8px;text-align:center;line-height:1.15}
+
+.hint{
+  position:relative;z-index:1;
+  margin:14px 2px 0;
+  font-size:12px;color:#9a927f;
+  display:flex;align-items:center;gap:7px;
+}
+.hint::before{
+  content:"";width:14px;height:14px;flex:0 0 14px;
+  border-radius:50%;
+  border:1px solid #c9bda7;
+  background:repeating-linear-gradient(45deg,#efe6d5,#efe6d5 2px,#fffaf0 2px,#fffaf0 4px);
+}
+
+/* ===== 学生缓存区 ===== */
+.buffer{
+  position:relative;z-index:1;
+  margin-top:14px;
+  border:1.5px dashed #ddcdb2;
+  border-radius:14px;
+  padding:10px 12px 12px;
+  background:rgba(255,255,255,.35);
+  transition:border-color .12s, background .12s;
+}
+.buffer.drag-over{border-color:var(--accent);background:#eef5f1}
+.buffer-head{font-size:11.5px;letter-spacing:1px;color:#948d7b;margin-bottom:8px}
+.buffer-head b{color:var(--accent);font-weight:600}
+.buffer-list{display:flex;flex-wrap:wrap;gap:8px;min-height:42px}
+.buffer-empty{font-size:12px;color:#b6ab94;align-self:center;padding:4px 2px}
+.buffer-card{
+  height:42px;padding:0 14px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:10px;background:#fffef9;border:1px solid #e2d9c8;
+  font-size:15px;font-weight:600;color:#333b34;letter-spacing:.5px;
+  cursor:grab;user-select:none;
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 2px 5px -3px rgba(80,60,20,.3);
+}
+.buffer-card:active{cursor:grabbing}
+.buffer-card.dragging{opacity:.32}
+.buffer-card.selected{
+  outline:2px solid var(--accent);outline-offset:2px;
+  border-color:var(--accent);background:#f2f8f5;
+}
+
+/* ===== 学生名单抽屉 ===== */
+.drawer-backdrop{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(32,30,22,.34);
+  opacity:0;pointer-events:none;
+  transition:opacity .22s;
+}
+body.drawer-open .drawer-backdrop{opacity:1;pointer-events:auto}
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;z-index:60;
+  width:min(390px,94vw);
+  background:#fffdf8;
+  box-shadow:-24px 0 60px -30px rgba(30,25,10,.55);
+  transform:translateX(102%);
+  transition:transform .26s cubic-bezier(.22,.8,.3,1);
+  display:flex;flex-direction:column;
+  border-left:1px solid #e9dfcd;
+}
+body.drawer-open .drawer{transform:translateX(0)}
+.drawer-head{
+  padding:20px 20px 16px;
+  border-bottom:1px solid #eee4d3;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+}
+.drawer-head h2{margin:0;font-size:18px;letter-spacing:.5px}
+.drawer-head p{margin:5px 0 0;font-size:11.5px;color:var(--muted)}
+.drawer-body{padding:16px 20px 20px;overflow:auto;flex:1}
+.add-form{display:flex;gap:8px;margin-bottom:12px}
+.add-form input{
+  flex:1;min-width:0;
+  padding:9px 12px;
+  border:1px solid #d9cfbd;border-radius:10px;
+  background:#fff;color:var(--ink);font-size:13.5px;
+  outline:none;
+}
+.add-form input:focus,.search:focus,.class-field input:focus,#editName:focus{
+  border-color:#9dbbad;box-shadow:0 0 0 3px rgba(47,111,94,.12);
+}
+.search{
+  width:100%;margin-bottom:12px;
+  padding:9px 12px;
+  border:1px solid #e1d7c5;border-radius:10px;
+  background:#fbf7ef;color:var(--ink);font-size:13px;outline:none;
+}
+.student-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.student-row{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 9px;border-radius:9px;
+  border:1px solid transparent;
+  transition:background .12s,border-color .12s;
+}
+.student-row:hover{background:#f8f3e8;border-color:#ece1ce}
+.student-row .row-index{
+  flex:0 0 26px;font-size:10.5px;color:#b1a894;text-align:right;
+}
+.student-row .student-name{font-size:14px;font-weight:600;white-space:nowrap}
+.student-row .student-seat{
+  margin-left:auto;
+  font-size:10.5px;color:#9b9280;white-space:nowrap;
+  max-width:128px;overflow:hidden;text-overflow:ellipsis;
+}
+.mini-btn{
+  flex:0 0 auto;
+  border:1px solid #e3d8c5;border-radius:7px;
+  background:#fffdf8;color:#6d7568;
+  font-size:11px;padding:3px 7px;cursor:pointer;
+}
+.mini-btn:hover{background:#f3ecdf;border-color:#d6c8b0}
+.student-list .empty-tip{
+  padding:30px 8px;text-align:center;color:#aaa18d;font-size:12.5px;
+}
+/* 选座弹窗的学生列表 */
+.picker-list{max-height:46vh;overflow:auto;margin-top:2px}
+.picker-list .student-row{cursor:pointer}
+.drawer-foot{
+  padding:14px 20px 18px;
+  border-top:1px solid #eee4d3;
+  background:#fdf9f1;
+}
+.class-field{display:flex;flex-direction:column;gap:6px;font-size:11.5px;color:#8a8a78}
+.class-field input{
+  padding:8px 11px;border:1px solid #ded3c0;border-radius:9px;
+  background:#fff;font-size:13px;color:var(--ink);outline:none;
+}
+
+/* ===== 编辑弹窗 ===== */
+.modal-backdrop{
+  position:fixed;inset:0;z-index:80;
+  background:rgba(30,28,20,.42);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal-backdrop.show{display:flex}
+.modal{
+  width:min(390px,100%);
+  background:#fffdf8;
+  border:1px solid #e8ddc9;
+  border-radius:16px;
+  padding:22px;
+  box-shadow:0 30px 70px -30px rgba(20,20,10,.6);
+  animation:pop .16s ease-out;
+}
+@keyframes pop{from{transform:scale(.96);opacity:.6}to{transform:scale(1);opacity:1}}
+.modal h2{margin:0;font-size:17px}
+.modal-sub{margin:6px 0 16px;font-size:12px;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:7px;font-size:12px;color:#7d8274}
+.field input{
+  padding:10px 12px;
+  border:1px solid #d9cfbd;border-radius:10px;
+  background:#fff;font-size:14px;color:var(--ink);outline:none;
+}
+.modal-actions{
+  display:flex;align-items:center;gap:8px;margin-top:20px;flex-wrap:wrap;
+}
+.modal-actions .spacer{flex:1}
+
+/* ===== 提示条 ===== */
+.toast{
+  position:fixed;left:50%;bottom:28px;z-index:90;
+  transform:translate(-50%,14px);
+  background:rgba(35,46,40,.94);
+  color:#fff;font-size:13px;
+  padding:9px 18px;border-radius:999px;
+  box-shadow:0 12px 26px -14px rgba(0,0,0,.6);
+  opacity:0;pointer-events:none;
+  transition:opacity .2s, transform .2s;
+  max-width:88vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== 响应式 ===== */
+@media (max-width:1180px){
+  :root{--seat-w:82px;--seat-h:50px;--seat-gap:9px;--group-gap:14px}
+  .topbar,.stage{padding-left:18px;padding-right:18px}
+  .classroom{padding:20px 18px 18px}
+  .group{padding:10px 10px 12px}
+  .row-rail{padding-top:45px}
+}
+@media (max-width:860px){
+  :root{--seat-w:74px;--seat-h:46px}
+  .btn{padding:8px 12px;font-size:12.5px}
+  .brand h1{font-size:21px}
+  .chip{padding:5px 10px;font-size:11.5px}
+}
+@media (max-width:640px){
+  :root{--seat-w:70px;--seat-h:44px;--seat-gap:7px;--group-gap:10px}
+  .topbar{padding-top:16px;gap:12px}
+  .brand-mark{width:40px;height:40px;flex-basis:40px;font-size:18px}
+  .brand h1{font-size:19px}
+  .sub{font-size:11.5px}
+  .top-right{width:100%;justify-content:flex-start}
+  .actions{width:100%}
+  .actions .btn{flex:1;justify-content:center}
+  .stage{padding:0 10px}
+  .classroom{padding:14px 10px 14px;border-radius:16px}
+  .blackboard{padding:14px 16px;border-width:7px}
+  .board-title{letter-spacing:4px}
+  .podium{width:62%}
+  .row-rail{display:none}
+  .seating{padding:10px 0 4px;gap:0}
+  .group{padding:8px 8px 10px;border-radius:11px}
+  .seat{font-size:13px}
+  .hint{font-size:11px;align-items:flex-start}
+}
+
+/* ===== 打印 ===== */
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  :root{--seat-w:84px;--seat-h:48px;--seat-gap:8px;--group-gap:14px}
+  body{background:#fff}
+  .topbar .chips,.topbar .actions,.hint,.buffer,.drawer,.drawer-backdrop,
+  .modal-backdrop,.toast{display:none!important}
+  .seat.selected{outline:none}
+  .topbar{padding:0 0 6px;max-width:none}
+  .stage{max-width:none;margin:0;padding:0}
+  .classroom{border:none;box-shadow:none;background:#fff;padding:0;border-radius:0}
+  .seat{box-shadow:none}
+  .row-rail{background:none}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+/* 打开名单时锁定页面滚动 */
+body.drawer-open{overflow:hidden}
+
+/* 抽屉滚动条 */
+.drawer-body::-webkit-scrollbar{width:8px}
+.drawer-body::-webkit-scrollbar-thumb{background:#e2d6c2;border-radius:999px}
+.drawer-body::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">座</div>
+    <div>
+      <h1>教室座位表</h1>
+      <p class="sub">
+        <span>赣县区城关小学</span><span class="dot-sep">·</span>
+        <span id="classLabel">310班</span><span class="dot-sep">·</span>
+        <span>点空位选学生 · 双击卡片编辑</span>
+      </p>
+    </div>
+  </div>
+  <div class="top-right">
+    <div class="chips" id="stats"></div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="shuffleBtn" type="button">随机排座</button>
+      <button class="btn btn-ghost" id="resetBtn" type="button">恢复初始</button>
+      <button class="btn btn-ghost" id="printBtn" type="button">打印</button>
+      <button class="btn btn-primary" id="rosterBtn" type="button">
+        学生名单 <span class="badge" id="rosterCount">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="stage">
+  <section class="classroom" aria-label="教室座位表">
+    <div class="blackboard">
+      <div class="board-top">
+        <span>赣县区城关小学</span>
+        <span id="boardDate"></span>
+      </div>
+      <div class="board-title"><span id="boardClass">310班</span> 座位表</div>
+      <div class="board-note">认真上课 · 团结友爱</div>
+    </div>
+
+    <div class="podium">
+      <div class="podium-body">讲 台</div>
+      <div class="podium-foot"></div>
+    </div>
+
+    <div class="seating">
+      <div class="row-rail" id="rowRail"></div>
+      <div class="groups" id="groups"></div>
+    </div>
+
+    <div class="buffer" id="buffer">
+      <div class="buffer-head">学生缓存区 · 未落座 <b id="bufferCount">0</b> 人（点选学生后再点座位即可落座）</div>
+      <div class="buffer-list" id="bufferList"></div>
+    </div>
+
+    <div class="hint">点击空座位可弹出学生列表安排落座；单击学生卡片选中、再点座位可换座；双击卡片编辑姓名；电脑端还支持直接拖拽。座位会自动保存到本机。</div>
+  </section>
+</main>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="drawer" aria-label="学生名单">
+  <div class="drawer-head">
+    <div>
+      <h2>学生名单</h2>
+      <p>共 <span id="drawerCount">0</span> 人 · 修改自动保存</p>
+    </div>
+    <button class="icon-btn" id="closeDrawer" type="button" aria-label="关闭名单">×</button>
+  </div>
+  <div class="drawer-body">
+    <form class="add-form" id="addForm">
+      <input type="text" id="newName" placeholder="输入学生姓名" maxlength="12" autocomplete="off">
+      <button class="btn btn-primary" type="submit">添加</button>
+    </form>
+    <input type="search" class="search" id="searchInput" placeholder="搜索姓名…" autocomplete="off">
+    <ul class="student-list" id="studentList"></ul>
+  </div>
+  <div class="drawer-foot">
+    <label class="class-field">
+      <span>班级名称（显示在黑板与标题上）</span>
+      <input type="text" id="classInput" maxlength="16" autocomplete="off">
+    </label>
+  </div>
+</aside>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">编辑学生</h2>
+    <p class="modal-sub" id="modalSeat"></p>
+    <label class="field">
+      <span>姓名</span>
+      <input type="text" id="editName" maxlength="12" autocomplete="off">
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-danger-ghost" id="deleteStudent" type="button">删除学生</button>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost" id="cancelEdit" type="button">取消</button>
+      <button class="btn btn-primary" id="saveEdit" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="pickerBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+    <h2 id="pickerTitle">选择学生</h2>
+    <p class="modal-sub" id="pickerSeat"></p>
+    <ul class="student-list picker-list" id="pickerList"></ul>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn btn-ghost" id="cancelPicker" type="button">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ===== 常量与初始数据 ===== */
+var GROUPS = 4;
+var ROWS = 6;
+var COLS = 2;
+var EXTRA_ROW = ROWS; /* 第7排：仅放追加学生 */
+var STORAGE_KEY = 'class-seat-map-v1';
+var GROUP_NAMES = ['第一组', '第二组', '第三组', '第四组'];
+/* 教室内从左到右依次是第四组、第三组、第二组、第一组 */
+var DISPLAY_ORDER = [3, 2, 1, 0];
+var GROUP_COLORS = ['#4a7fb5', '#4f9b78', '#c08a3e', '#8a6bb8'];
+var SEED_NAMES = [
+  '钟梓宸','曾欣玥','李晓晖','刘昊君','赖静琪','杨厚清','王惜玥','罗舒妤','姚心雨','郭子恒',
+  '钟一','肖蕴涵','李弘睿','谢志成','肖棋皓','李泓锦','蓝志峰','邓颖霏','何思渊','宋丽娟',
+  '陈诗言','黄文浩','徐瑜韩','李锦程','黄方源','欧阳若尧','刘志谦','蔡铭恩','赖昱辰','陈嵩',
+  '朱文博','刘晨璐','卢毅','付锦汐','罗艺萱','黄心玥','钟兆威','杨子豪','刘淑涵','谢乐豪',
+  '黎妍','许挺毅','钟尚霖','范霆','钟文瑄','谢梓洋','曾钰翔','张欣乔','罗枢煌'
+];
+
+var state = null;
+var editingId = null;
+var dragSeatId = null;
+var dragStudentId = null;
+var selectedStudentId = null;
+var pickerSeatId = null;
+var pickerExtraGroup = null;
+var justDragged = false;
+var uidSeq = 0;
+var toastTimer = null;
+
+function $(sel, root){ return (root || document).querySelector(sel); }
+
+function uid(){
+  uidSeq += 1;
+  return 's' + uidSeq + '-' + Math.random().toString(36).slice(2, 6);
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, function(ch){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch];
+  });
+}
+
+/* ===== 状态构建：默认座位全空，学生全部进入缓存区 ===== */
+function makeInitialState(){
+  uidSeq = 0;
+  var students = SEED_NAMES.map(function(name){
+    return { id: uid(), name: name };
+  });
+  return {
+    className: '310班',
+    students: students,
+    assign: {},
+    extraGroups: []
+  };
+}
+
+/* 座位列表：按从左到右（第四组→第一组）生成 4×6×2 基础座位，
+   追加学生单独放到所属大组的第 7 排 */
+function seatList(st){
+  st = st || state;
+  var list = [];
+  for(var di = 0; di < GROUPS; di++){
+    var g = DISPLAY_ORDER[di];
+    for(var r = 0; r < ROWS; r++){
+      for(var c = 0; c < COLS; c++){
+        list.push({ id: 'g' + g + 'r' + r + 'c' + c, g: g, r: r, c: c, extra: false });
+      }
+    }
+  }
+  var counts = [0, 0, 0, 0];
+  st.extraGroups.forEach(function(group){
+    var k = counts[group];
+    counts[group] += 1;
+    list.push({
+      id: 'g' + group + 'r' + EXTRA_ROW + 'x' + k,
+      g: group, r: EXTRA_ROW, c: COLS + k, extra: true
+    });
+  });
+  return list;
+}
+
+function seatById(id, st){
+  var list = seatList(st);
+  for(var i = 0; i < list.length; i++){
+    if(list[i].id === id) return list[i];
+  }
+  return null;
+}
+
+/* 按“大组 → 排 → 列”的顺序把学生填进空位 */
+function fillSeats(st){
+  st = st || state;
+  var list = seatList(st);
+  var ids = st.students.map(function(s){ return s.id; });
+  st.assign = {};
+  for(var i = 0; i < list.length; i++){
+    if(ids[i]) st.assign[list[i].id] = ids[i];
+  }
+}
+
+function emptySeat(st){
+  var list = seatList(st);
+  for(var i = 0; i < list.length; i++){
+    if(!st.assign[list[i].id]) return list[i];
+  }
+  return null;
+}
+
+/* 在指定大组的第7排追加一个加座，返回新座位 id */
+function addExtraSeatToGroup(st, group){
+  var count = 0;
+  st.extraGroups.forEach(function(g){ if(g === group) count += 1; });
+  st.extraGroups.push(group);
+  return 'g' + group + 'r' + EXTRA_ROW + 'x' + count;
+}
+
+function addExtraSeat(st){
+  return addExtraSeatToGroup(st, Math.floor(Math.random() * GROUPS));
+}
+
+/* 整理加座：同组加座向前靠拢，空余加座自动收回（座位号保持稳定） */
+function pruneEmptyExtras(st){
+  for(var g = 0; g < GROUPS; g++){
+    var counts = [0, 0, 0, 0];
+    var seatIds = [];
+    st.extraGroups.forEach(function(gr){
+      var k = counts[gr];
+      counts[gr] += 1;
+      if(gr === g) seatIds.push('g' + g + 'r' + EXTRA_ROW + 'x' + k);
+    });
+    var occupants = [];
+    seatIds.forEach(function(id){
+      if(st.assign[id]) occupants.push(st.assign[id]);
+      delete st.assign[id];
+    });
+    if(occupants.length < seatIds.length){
+      var kept = 0;
+      var next = [];
+      st.extraGroups.forEach(function(gr){
+        if(gr === g){
+          if(kept < occupants.length){ next.push(gr); kept += 1; }
+        } else {
+          next.push(gr);
+        }
+      });
+      st.extraGroups = next;
+    }
+    for(var k = 0; k < occupants.length; k++){
+      st.assign['g' + g + 'r' + EXTRA_ROW + 'x' + k] = occupants[k];
+    }
+  }
+}
+
+/* ===== 数据操作 ===== */
+function addStudent(name){
+  var student = { id: uid(), name: name };
+  state.students.push(student);
+  commit();
+}
+
+function deleteStudent(id){
+  var index = -1;
+  for(var i = 0; i < state.students.length; i++){
+    if(state.students[i].id === id){ index = i; break; }
+  }
+  if(index < 0) return null;
+  var removed = state.students.splice(index, 1)[0];
+  var seatIds = Object.keys(state.assign);
+  for(var j = 0; j < seatIds.length; j++){
+    if(state.assign[seatIds[j]] === id) delete state.assign[seatIds[j]];
+  }
+  pruneEmptyExtras(state);
+  return removed;
+}
+
+function renameStudent(id, name){
+  for(var i = 0; i < state.students.length; i++){
+    if(state.students[i].id === id){
+      state.students[i].name = name;
+      return true;
+    }
+  }
+  return false;
+}
+
+function swapSeats(aId, bId){
+  if(!aId || !bId || aId === bId) return;
+  var a = state.assign[aId];
+  var b = state.assign[bId];
+  if(b) state.assign[aId] = b; else delete state.assign[aId];
+  if(a) state.assign[bId] = a; else delete state.assign[bId];
+}
+
+/* 把学生安排到指定座位：已落座则与原位交换；缓存区学生直接落座，原座位学生回缓存区 */
+function moveStudentToSeat(studentId, targetSeatId){
+  var cur = seatOfStudent(studentId);
+  if(cur){ swapSeats(cur, targetSeatId); return; }
+  if(state.assign[targetSeatId]) delete state.assign[targetSeatId];
+  state.assign[targetSeatId] = studentId;
+}
+
+function shuffleStudents(){
+  selectedStudentId = null;
+  pruneEmptyExtras(state);
+  while(seatList(state).length < state.students.length){
+    addExtraSeat(state);
+  }
+  var students = state.students.slice();
+  for(var i = students.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = students[i]; students[i] = students[j]; students[j] = tmp;
+  }
+  state.students = students;
+  fillSeats(state);
+  pruneEmptyExtras(state);
+  commit();
+}
+/* ===== 本地保存 ===== */
+function save(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      v: 1,
+      className: state.className,
+      students: state.students,
+      assign: state.assign,
+      extraGroups: state.extraGroups
+    }));
+  }catch(err){ /* 无痕模式等场景下忽略 */ }
+}
+
+function loadSaved(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    var data = JSON.parse(raw);
+    if(!data || typeof data !== 'object' || !Array.isArray(data.students) || !data.assign) return null;
+    var students = data.students.filter(function(s){
+      return s && typeof s.id === 'string' && typeof s.name === 'string';
+    }).map(function(s){
+      return { id: s.id, name: s.name };
+    });
+    var extraGroups = Array.isArray(data.extraGroups) ? data.extraGroups.filter(function(g){
+      return typeof g === 'number' && g >= 0 && g < GROUPS && Math.floor(g) === g;
+    }) : [];
+    return {
+      className: (typeof data.className === 'string' && data.className.trim()) ? data.className.trim() : '310班',
+      students: students,
+      assign: data.assign,
+      extraGroups: extraGroups
+    };
+  }catch(err){ return null; }
+}
+
+/* 校验存档数据：清理无效座位分配，未落座学生保留在缓存区 */
+function normalizeState(st){
+  var seen = {};
+  st.students.forEach(function(s){
+    if(seen[s.id]) s.id = uid();
+    seen[s.id] = true;
+  });
+  var validSeats = {};
+  var validStudents = {};
+  seatList(st).forEach(function(s){ validSeats[s.id] = true; });
+  st.students.forEach(function(s){ validStudents[s.id] = true; });
+  var used = {};
+  Object.keys(st.assign).forEach(function(seatId){
+    var sid = st.assign[seatId];
+    if(!validSeats[seatId] || !validStudents[sid] || used[sid]) delete st.assign[seatId];
+    else used[sid] = true;
+  });
+  pruneEmptyExtras(st);
+  return st;
+}
+
+function commit(){
+  save();
+  render();
+}
+
+/* ===== 渲染 ===== */
+function findStudent(id){
+  for(var i = 0; i < state.students.length; i++){
+    if(state.students[i].id === id) return state.students[i];
+  }
+  return null;
+}
+
+function seatOfStudent(studentId){
+  var keys = Object.keys(state.assign);
+  for(var i = 0; i < keys.length; i++){
+    if(state.assign[keys[i]] === studentId) return keys[i];
+  }
+  return null;
+}
+
+function seatLabel(seatId){
+  var seat = seatById(seatId, state);
+  if(!seat) return '未安排';
+  return GROUP_NAMES[seat.g] + ' 第' + (seat.r + 1) + '排 ' +
+    (seat.extra ? '加座' : '第' + (seat.c + 1) + '列');
+}
+
+function renderStats(){
+  var total = state.students.length;
+  var assigned = Object.keys(state.assign).length;
+  var seatCount = seatList(state).length;
+  var extras = state.extraGroups.length;
+  var html =
+    '<span class="chip">学生 <b>' + total + '</b></span>' +
+    '<span class="chip">未落座 <b>' + (total - assigned) + '</b></span>' +
+    '<span class="chip">空位 <b>' + Math.max(0, seatCount - assigned) + '</b></span>' +
+    '<span class="chip">加座 <b>' + extras + '</b></span>';
+  $('#stats').innerHTML = html;
+}
+
+function renderBoard(){
+  var now = new Date();
+  var date = now.getFullYear() + '-' +
+    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0');
+  $('#boardDate').textContent = date;
+  $('#boardClass').textContent = state.className;
+  $('#classLabel').textContent = state.className;
+  document.title = state.className + ' · 教室座位表';
+}
+
+function renderRail(){
+  var html = '';
+  for(var r = 0; r < ROWS; r++){
+    html += '<div class="row-label">第' + (r + 1) + '排</div>';
+  }
+  html += '<div class="row-label extra-label">第' + (EXTRA_ROW + 1) + '排</div>';
+  $('#rowRail').innerHTML = html;
+}
+
+function createSeatEl(seat){
+  var studentId = state.assign[seat.id];
+  var student = studentId ? findStudent(studentId) : null;
+  var el = document.createElement('div');
+  el.className = 'seat';
+  el.dataset.seat = seat.id;
+  el.style.setProperty('--g-color', GROUP_COLORS[seat.g]);
+  if(seat.extra) el.classList.add('extra');
+  if(student){
+    el.classList.add('occupied');
+    if(student.id === selectedStudentId) el.classList.add('selected');
+    el.draggable = true;
+    el.title = '单击选中 · 再点座位换座 · 双击编辑 · 可拖拽';
+    var nameEl = document.createElement('span');
+    nameEl.className = 'name';
+    nameEl.textContent = student.name;
+    el.appendChild(nameEl);
+  } else {
+    el.classList.add('empty');
+    el.textContent = '空位';
+  }
+  return el;
+}
+
+function renderGroups(){
+  var allSeats = seatList(state);
+  var frag = document.createDocumentFragment();
+
+  DISPLAY_ORDER.forEach(function(g){
+    var groupSeats = allSeats.filter(function(s){ return s.g === g; });
+    var extras = groupSeats.filter(function(s){ return s.extra; });
+    var headCount = groupSeats.filter(function(s){ return state.assign[s.id]; }).length;
+
+    var groupEl = document.createElement('section');
+    groupEl.className = 'group';
+    groupEl.style.setProperty('--g-color', GROUP_COLORS[g]);
+
+    var head = document.createElement('div');
+    head.className = 'group-head';
+    head.innerHTML = '<span class="dot"></span>' + GROUP_NAMES[g] +
+      '<span class="count">' + headCount + '人</span>';
+    groupEl.appendChild(head);
+
+    var rowsEl = document.createElement('div');
+    rowsEl.className = 'rows';
+
+    for(var r = 0; r < ROWS; r++){
+      var rowEl = document.createElement('div');
+      rowEl.className = 'seat-row';
+      for(var c = 0; c < COLS; c++){
+        var seat = groupSeats.filter(function(s){ return !s.extra && s.r === r && s.c === c; })[0];
+        if(seat) rowEl.appendChild(createSeatEl(seat));
+      }
+      rowsEl.appendChild(rowEl);
+    }
+
+    /* 第7排（加座区）每个大组始终显示，末尾留一个空位作为拖放入口 */
+    var extraRow = document.createElement('div');
+    extraRow.className = 'seat-row extra-row';
+    extras.forEach(function(s){ extraRow.appendChild(createSeatEl(s)); });
+    var slot = document.createElement('div');
+    slot.className = 'seat empty extra-slot';
+    slot.dataset.extraGroup = g;
+    slot.style.setProperty('--g-color', GROUP_COLORS[g]);
+    slot.textContent = '加座';
+    slot.title = '把学生拖到这里，加入' + GROUP_NAMES[g] + '第7排';
+    extraRow.appendChild(slot);
+    rowsEl.appendChild(extraRow);
+
+    groupEl.appendChild(rowsEl);
+    frag.appendChild(groupEl);
+  });
+
+  $('#groups').innerHTML = '';
+  $('#groups').appendChild(frag);
+}
+
+/* 未落座（缓存区）学生列表 */
+function unseatedStudents(){
+  var seated = {};
+  Object.keys(state.assign).forEach(function(k){ seated[state.assign[k]] = true; });
+  return state.students.filter(function(s){ return !seated[s.id]; });
+}
+
+/* 缓存区：渲染未落座学生 */
+function renderBuffer(){
+  var unseated = unseatedStudents();
+  var html = '';
+  unseated.forEach(function(s){
+    html += '<div class="buffer-card' + (s.id === selectedStudentId ? ' selected' : '') +
+      '" draggable="true" data-student="' + s.id +
+      '" title="单击选中 · 再点座位落座 · 双击编辑 · 可拖拽">' +
+      escapeHtml(s.name) + '</div>';
+  });
+  if(!unseated.length) html = '<div class="buffer-empty">所有学生都已落座</div>';
+  $('#bufferList').innerHTML = html;
+  $('#bufferCount').textContent = unseated.length;
+}
+
+function renderRoster(){
+  var keyword = ($('#searchInput').value || '').trim();
+  var html = '';
+  var shown = 0;
+
+  state.students.forEach(function(student, index){
+    if(keyword && student.name.indexOf(keyword) < 0) return;
+    shown += 1;
+    var seatId = seatOfStudent(student.id);
+    html += '<li class="student-row" data-id="' + student.id + '">' +
+      '<span class="row-index">' + (index + 1) + '</span>' +
+      '<span class="student-name">' + escapeHtml(student.name) + '</span>' +
+      '<span class="student-seat">' + (seatId ? escapeHtml(seatLabel(seatId)) : '缓存区') + '</span>' +
+      '<button class="mini-btn" type="button" data-action="edit">编辑</button>' +
+      '</li>';
+  });
+
+  if(!shown){
+    html = '<li class="empty-tip">' + (keyword ? '没有找到匹配的学生' : '还没有学生，先添加一位吧') + '</li>';
+  }
+
+  $('#studentList').innerHTML = html;
+  $('#drawerCount').textContent = state.students.length;
+  $('#rosterCount').textContent = state.students.length;
+}
+
+function render(){
+  renderStats();
+  renderBoard();
+  renderRail();
+  renderGroups();
+  renderBuffer();
+  renderRoster();
+  $('#classInput').value = state.className;
+}
+
+/* ===== 提示与弹窗 ===== */
+function toast(message){
+  var el = $('#toast');
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 1800);
+}
+
+function openEdit(studentId){
+  var student = findStudent(studentId);
+  if(!student) return;
+  editingId = studentId;
+  $('#editName').value = student.name;
+  var seatId = seatOfStudent(studentId);
+  $('#modalSeat').textContent = seatId ? ('当前位置：' + seatLabel(seatId)) : '当前位置：缓存区（未落座）';
+  $('#modalBackdrop').classList.add('show');
+  setTimeout(function(){
+    $('#editName').focus();
+    $('#editName').select();
+  }, 30);
+}
+
+function closeEdit(){
+  editingId = null;
+  $('#modalBackdrop').classList.remove('show');
+}
+
+/* ===== 选座弹窗：点空座位弹出学生列表 ===== */
+function openPicker(seatId, extraGroup){
+  pickerSeatId = seatId || null;
+  pickerExtraGroup = (extraGroup === undefined || extraGroup === null) ? null : extraGroup;
+  var label = pickerSeatId ? seatLabel(pickerSeatId)
+    : (GROUP_NAMES[pickerExtraGroup] + ' 第7排 加座');
+  $('#pickerSeat').textContent = '安排到：' + label + '（从缓存区选择一名学生）';
+  var unseated = unseatedStudents();
+  var html = '';
+  unseated.forEach(function(s, i){
+    html += '<li class="student-row" data-id="' + s.id + '">' +
+      '<span class="row-index">' + (i + 1) + '</span>' +
+      '<span class="student-name">' + escapeHtml(s.name) + '</span>' +
+      '<span class="student-seat">缓存区</span>' +
+      '</li>';
+  });
+  if(!unseated.length) html = '<li class="empty-tip">缓存区暂无学生</li>';
+  $('#pickerList').innerHTML = html;
+  $('#pickerBackdrop').classList.add('show');
+}
+
+function closePicker(){
+  pickerSeatId = null;
+  pickerExtraGroup = null;
+  $('#pickerBackdrop').classList.remove('show');
+}
+
+function pickStudent(studentId){
+  var targetId = pickerSeatId;
+  if(!targetId && pickerExtraGroup !== null){
+    targetId = addExtraSeatToGroup(state, pickerExtraGroup);
+  }
+  closePicker();
+  if(!targetId) return;
+  moveStudentToSeat(studentId, targetId);
+  selectedStudentId = null;
+  pruneEmptyExtras(state);
+  commit();
+  toast('已安排座位');
+}
+
+function saveEdit(){
+  if(!editingId) return;
+  var name = $('#editName').value.trim();
+  if(!name){
+    toast('姓名不能为空');
+    $('#editName').focus();
+    return;
+  }
+  if(renameStudent(editingId, name)){
+    commit();
+    closeEdit();
+    toast('已保存');
+  }
+}
+
+function confirmDelete(){
+  if(!editingId) return;
+  var student = findStudent(editingId);
+  if(!student) return;
+  if(!window.confirm('确定删除学生「' + student.name + '」吗？')) return;
+  if(selectedStudentId === editingId) selectedStudentId = null;
+  var removed = deleteStudent(editingId);
+  commit();
+  closeEdit();
+  if(removed) toast('已删除 ' + removed.name);
+}
+
+function openDrawer(){
+  document.body.classList.add('drawer-open');
+  setTimeout(function(){ $('#searchInput').focus(); }, 120);
+}
+
+function closeDrawer(){
+  document.body.classList.remove('drawer-open');
+}
+
+/* ===== 事件绑定 ===== */
+function bindEvents(){
+  $('#shuffleBtn').addEventListener('click', function(){
+    shuffleStudents();
+    toast('已随机重排座位');
+  });
+
+  $('#resetBtn').addEventListener('click', function(){
+    if(!window.confirm('确定恢复初始名单与座位吗？当前修改将被覆盖。')) return;
+    selectedStudentId = null;
+    state = makeInitialState();
+    commit();
+    toast('已恢复初始状态');
+  });
+
+  $('#printBtn').addEventListener('click', function(){ window.print(); });
+
+  $('#rosterBtn').addEventListener('click', openDrawer);
+  $('#closeDrawer').addEventListener('click', closeDrawer);
+  $('#drawerBackdrop').addEventListener('click', closeDrawer);
+
+  $('#addForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var input = $('#newName');
+    var name = input.value.trim();
+    if(!name){ input.focus(); return; }
+    addStudent(name);
+    input.value = '';
+    input.focus();
+    toast('已添加 ' + name);
+    var list = $('#studentList');
+    list.scrollTop = list.scrollHeight;
+  });
+
+  $('#searchInput').addEventListener('input', renderRoster);
+
+  $('#studentList').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action="edit"]');
+    if(!btn) return;
+    var row = btn.closest('.student-row');
+    if(row) openEdit(row.dataset.id);
+  });
+
+  $('#classInput').addEventListener('input', function(e){
+    var value = e.target.value.trim() || '310班';
+    state.className = value;
+    $('#classLabel').textContent = value;
+    $('#boardClass').textContent = value;
+    document.title = value + ' · 教室座位表';
+    save();
+  });
+
+  $('#saveEdit').addEventListener('click', saveEdit);
+  $('#cancelEdit').addEventListener('click', closeEdit);
+  $('#deleteStudent').addEventListener('click', confirmDelete);
+  $('#editName').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); saveEdit(); }
+  });
+  $('#modalBackdrop').addEventListener('click', function(e){
+    if(e.target === $('#modalBackdrop')) closeEdit();
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    if($('#pickerBackdrop').classList.contains('show')) closePicker();
+    else if($('#modalBackdrop').classList.contains('show')) closeEdit();
+    else if(document.body.classList.contains('drawer-open')) closeDrawer();
+    else if(selectedStudentId){ selectedStudentId = null; render(); }
+  });
+
+  /* 拖拽换座 */
+  var groupsEl = $('#groups');
+
+  groupsEl.addEventListener('dragstart', function(e){
+    var seat = e.target.closest('.seat');
+    if(!seat || !seat.classList.contains('occupied')){ e.preventDefault(); return; }
+    dragSeatId = seat.dataset.seat;
+    dragStudentId = state.assign[dragSeatId] || null;
+    justDragged = true;
+    seat.classList.add('dragging');
+    try{
+      e.dataTransfer.setData('text/plain', dragSeatId);
+      e.dataTransfer.effectAllowed = 'move';
+    }catch(err){}
+  });
+
+  groupsEl.addEventListener('dragend', function(){
+    dragSeatId = null;
+    dragStudentId = null;
+    document.querySelectorAll('.seat').forEach(function(el){
+      el.classList.remove('dragging', 'drag-over');
+    });
+    setTimeout(function(){ justDragged = false; }, 60);
+  });
+
+  groupsEl.addEventListener('dragover', function(e){
+    var seat = e.target.closest('.seat');
+    if(!seat || (!dragSeatId && !dragStudentId)) return;
+    if(dragSeatId && seat.dataset.seat === dragSeatId) return;
+    e.preventDefault();
+    try{ e.dataTransfer.dropEffect = 'move'; }catch(err){}
+    seat.classList.add('drag-over');
+  });
+
+  groupsEl.addEventListener('dragleave', function(e){
+    var seat = e.target.closest('.seat');
+    if(seat) seat.classList.remove('drag-over');
+  });
+
+  groupsEl.addEventListener('drop', function(e){
+    var seat = e.target.closest('.seat');
+    if(!seat || (!dragSeatId && !dragStudentId)) return;
+    e.preventDefault();
+    seat.classList.remove('drag-over');
+    var targetId = seat.dataset.seat;
+    if(!targetId && seat.dataset.extraGroup !== undefined){
+      targetId = addExtraSeatToGroup(state, parseInt(seat.dataset.extraGroup, 10));
+    }
+    var changed = false;
+    if(targetId && dragSeatId && targetId !== dragSeatId){
+      swapSeats(dragSeatId, targetId);
+      changed = true;
+    } else if(targetId && dragStudentId){
+      moveStudentToSeat(dragStudentId, targetId);
+      changed = true;
+    }
+    if(changed){
+      selectedStudentId = null;
+      pruneEmptyExtras(state);
+      commit();
+      toast('已调整座位');
+    }
+    dragSeatId = null;
+    dragStudentId = null;
+    setTimeout(function(){ justDragged = false; }, 60);
+  });
+
+  /* 点选绑定：单击学生选中，再点座位落座/交换；双击编辑 */
+  groupsEl.addEventListener('click', function(e){
+    if(justDragged) return;
+    var seat = e.target.closest('.seat');
+    if(!seat) return;
+    e.stopPropagation(); /* 阻止冒泡到 .classroom 的取消选中 */
+    var seatId = seat.dataset.seat;
+    var occupant = seatId ? (state.assign[seatId] || null) : null;
+    if(selectedStudentId){
+      if(occupant === selectedStudentId){
+        selectedStudentId = null;
+        render();
+        return;
+      }
+      var targetId = seatId;
+      if(!targetId && seat.dataset.extraGroup !== undefined){
+        targetId = addExtraSeatToGroup(state, parseInt(seat.dataset.extraGroup, 10));
+      }
+      if(!targetId) return;
+      moveStudentToSeat(selectedStudentId, targetId);
+      selectedStudentId = null;
+      pruneEmptyExtras(state);
+      commit();
+      toast('已安排座位');
+      return;
+    }
+    if(occupant){
+      selectedStudentId = occupant;
+      render();
+      toast('已选中 ' + findStudent(occupant).name + '，再点目标座位');
+      return;
+    }
+    /* 空座位或加座虚位：弹出学生列表选择 */
+    openPicker(seatId || null,
+      seat.dataset.extraGroup !== undefined ? parseInt(seat.dataset.extraGroup, 10) : null);
+  });
+
+  groupsEl.addEventListener('dblclick', function(e){
+    var seat = e.target.closest('.seat');
+    if(!seat) return;
+    var studentId = state.assign[seat.dataset.seat];
+    if(studentId) openEdit(studentId);
+  });
+
+  /* 缓存区：点选、双击编辑、拖回缓存区 */
+  var bufferEl = $('#buffer');
+
+  bufferEl.addEventListener('click', function(e){
+    if(justDragged) return;
+    e.stopPropagation(); /* 阻止冒泡到 .classroom 的取消选中 */
+    var card = e.target.closest('.buffer-card');
+    if(card){
+      var id = card.dataset.student;
+      selectedStudentId = (selectedStudentId === id) ? null : id;
+      render();
+      if(selectedStudentId) toast('已选中 ' + findStudent(selectedStudentId).name + '，再点目标座位');
+      return;
+    }
+    if(selectedStudentId){
+      var cur = seatOfStudent(selectedStudentId);
+      selectedStudentId = null;
+      if(cur){
+        delete state.assign[cur];
+        pruneEmptyExtras(state);
+        commit();
+        toast('已移回缓存区');
+      } else {
+        render();
+      }
+    }
+  });
+
+  bufferEl.addEventListener('dblclick', function(e){
+    var card = e.target.closest('.buffer-card');
+    if(card) openEdit(card.dataset.student);
+  });
+
+  bufferEl.addEventListener('dragstart', function(e){
+    var card = e.target.closest('.buffer-card');
+    if(!card){ e.preventDefault(); return; }
+    dragStudentId = card.dataset.student;
+    dragSeatId = null;
+    justDragged = true;
+    card.classList.add('dragging');
+    try{
+      e.dataTransfer.setData('text/plain', dragStudentId);
+      e.dataTransfer.effectAllowed = 'move';
+    }catch(err){}
+  });
+
+  bufferEl.addEventListener('dragend', function(){
+    dragSeatId = null;
+    dragStudentId = null;
+    document.querySelectorAll('.buffer-card').forEach(function(el){
+      el.classList.remove('dragging');
+    });
+    bufferEl.classList.remove('drag-over');
+    setTimeout(function(){ justDragged = false; }, 60);
+  });
+
+  bufferEl.addEventListener('dragover', function(e){
+    if(!dragSeatId && !dragStudentId) return;
+    e.preventDefault();
+    try{ e.dataTransfer.dropEffect = 'move'; }catch(err){}
+    bufferEl.classList.add('drag-over');
+  });
+
+  bufferEl.addEventListener('dragleave', function(e){
+    if(e.target === bufferEl) bufferEl.classList.remove('drag-over');
+  });
+
+  bufferEl.addEventListener('drop', function(e){
+    if(!dragSeatId && !dragStudentId) return;
+    e.preventDefault();
+    bufferEl.classList.remove('drag-over');
+    if(dragSeatId){
+      delete state.assign[dragSeatId];
+      selectedStudentId = null;
+      pruneEmptyExtras(state);
+      commit();
+      toast('已移回缓存区');
+    }
+    dragSeatId = null;
+    dragStudentId = null;
+    setTimeout(function(){ justDragged = false; }, 60);
+  });
+
+  /* 点击教室空白处取消选中 */
+  $('.classroom').addEventListener('click', function(e){
+    if(!selectedStudentId || justDragged) return;
+    if(e.target.closest('.seat') || e.target.closest('.buffer')) return;
+    selectedStudentId = null;
+    render();
+  });
+
+  /* 选座弹窗事件 */
+  $('#pickerList').addEventListener('click', function(e){
+    var row = e.target.closest('.student-row');
+    if(row && row.dataset.id) pickStudent(row.dataset.id);
+  });
+  $('#cancelPicker').addEventListener('click', closePicker);
+  $('#pickerBackdrop').addEventListener('click', function(e){
+    if(e.target === $('#pickerBackdrop')) closePicker();
+  });
+}
+
+/* ===== 启动 ===== */
+function init(){
+  var saved = loadSaved();
+  state = saved ? normalizeState(saved) : makeInitialState();
+  bindEvents();
+  render();
+}
+
+init();
+})();
+</script>
+</body>
+</html>
