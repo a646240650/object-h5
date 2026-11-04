@@ -537,17 +537,119 @@ body.drawer-open .drawer{transform:translateX(0)}
   .hint{font-size:11px;align-items:flex-start}
 }
 
+/* ===== 顶部页签 ===== */
+.tabs{
+  max-width:1280px;margin:10px auto 0;padding:0 28px;
+  display:flex;gap:8px;position:relative;z-index:2;
+}
+.tab{
+  border:1px solid var(--line);border-bottom:none;
+  background:#fffdf7;color:#6b7369;
+  padding:9px 20px;font-size:14px;cursor:pointer;
+  border-radius:10px 10px 0 0;
+  transition:background .18s,color .18s,box-shadow .18s;
+}
+.tab:hover{background:#f7f1e6;color:#48514a}
+.tab.is-active{
+  background:linear-gradient(180deg,#357a67,#2a6152);
+  border-color:transparent;color:#fff;font-weight:600;
+  box-shadow:0 -6px 14px -10px rgba(40,90,74,.95);
+}
+.tab:focus-visible{outline:2px solid rgba(47,111,94,.45);outline-offset:2px}
+
+.page{animation:pageIn .25s ease both}
+.page[hidden]{display:none!important}
+@keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* 值日页签下隐藏座位专属按钮 */
+body[data-tab="duty"] .seat-only{display:none!important}
+
+/* ===== 值日安排 ===== */
+.duty-stage{max-width:1000px;margin:0 auto;padding:16px 28px 42px}
+.duty-sheet{
+  background:var(--paper);border:1px solid var(--line);border-radius:16px;
+  padding:26px 30px 24px;box-shadow:var(--shadow);
+}
+.duty-title{
+  margin:0 0 18px;text-align:center;
+  font-size:21px;font-weight:700;letter-spacing:2px;
+  cursor:text;
+}
+.duty-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;line-height:1.55}
+.duty-table th,.duty-table td{
+  border:1px solid #cbbda4;padding:7px 6px;
+  text-align:center;vertical-align:middle;
+  word-break:break-word;
+}
+.duty-table thead th{background:#f4eee3;font-weight:600;letter-spacing:1px}
+.duty-table thead th:first-child{width:96px}
+.duty-label{
+  background:#faf6ee;font-weight:600;color:#5c6459;
+  white-space:pre-line;line-height:1.45;
+}
+.duty-table td[contenteditable]:hover,
+.duty-title:hover,
+.duty-notes li:hover{background:#fffaf0}
+.duty-table td[contenteditable]:focus,
+.duty-title:focus,
+.duty-notes li:focus{
+  background:#fff;box-shadow:inset 0 0 0 2px rgba(47,111,94,.35);
+}
+/* 值日人员格：点击弹出学生选择器 */
+.duty-slot{cursor:pointer;transition:background .15s,box-shadow .15s}
+.duty-slot:hover{background:#f1f8f4;box-shadow:inset 0 0 0 1px rgba(47,111,94,.28)}
+.duty-slot.is-empty::after{content:'未安排';color:#c4beb2;font-size:11px}
+.picker-list .student-row.is-picked{background:#eaf4ef;box-shadow:inset 3px 0 0 var(--accent)}
+.picker-list .student-row.is-picked .student-name{font-weight:600;color:#2f6f5e}
+.picker-list .student-row .pick-mark{flex:0 0 16px;color:#2f6f5e;font-weight:700}
+.duty-check{text-align:left;padding:9px 12px!important}
+.duty-check .check-item{display:flex;gap:6px;margin:2px 0}
+.duty-check .num{color:#8a8375;flex:0 0 16px;text-align:right}
+.duty-cell-left{text-align:left;padding:9px 12px!important}
+.duty-notes-title{margin:16px 0 4px;font-size:13px;font-weight:600;color:#5c6459}
+.duty-notes{margin:0;padding-left:22px;font-size:12.5px;line-height:1.9;color:#5f665c}
+.duty-notes li{margin:0;cursor:text;border-radius:4px}
+.duty-tools{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin-top:14px;font-size:12.5px;color:var(--muted);
+}
+.duty-tools .btn{padding:7px 12px;font-size:12.5px}
+
+@media (max-width:640px){
+  .tabs{padding:0 16px}
+  .tab{flex:1;display:flex;justify-content:center}
+  .duty-stage{padding:10px 12px 30px}
+  .duty-sheet{padding:16px 12px}
+  .duty-table{font-size:11.5px}
+  .duty-table th,.duty-table td{padding:5px 3px}
+}
+
 /* ===== 打印 ===== */
 @media print{
-  @page{size:A4 landscape;margin:8mm}
-  :root{--seat-w:84px;--seat-h:48px;--seat-gap:8px;--group-gap:14px}
+  :root{--seat-w:78px;--seat-h:44px;--seat-gap:6px;--group-gap:10px}
   body{background:#fff}
-  .topbar .chips,.topbar .actions,.hint,.buffer,.drawer,.drawer-backdrop,
-  .modal-backdrop,.toast,.gh-btn,.row-del{display:none!important}
+  .group{padding:5px 6px 7px}
+  .group-head{margin-bottom:4px}
+  .blackboard{padding:14px 26px 12px;border-width:8px}
+  .podium{margin:10px auto 2px}
+  .seating{margin-top:10px;padding:6px 0 0}
+  .seat-row{gap:6px}
+  .tabs,.topbar .chips,.topbar .actions,.hint,.buffer,.drawer,.drawer-backdrop,
+  .modal-backdrop,.toast,.gh-btn,.row-del,.duty-tools{display:none!important}
+  .page[hidden]{display:none!important}
+  .page{animation:none!important;opacity:1!important;transform:none!important}
   .seat.selected{outline:none}
   .topbar{padding:0 0 6px;max-width:none}
+  body[data-tab="duty"] .topbar{display:none!important}
   .stage{max-width:none;margin:0;padding:0}
-  .classroom{border:none;box-shadow:none;background:#fff;padding:0;border-radius:0}
+  .duty-stage{max-width:none;margin:0;padding:0}
+  .classroom,.duty-sheet{border:none;box-shadow:none;background:#fff;padding:0;border-radius:0}
+  .duty-title{font-size:17px;margin-bottom:12px}
+  .duty-table{font-size:11px}
+  .duty-table th,.duty-table td{padding:5px 4px}
+  .duty-notes{margin-top:8px;font-size:10.5px;line-height:1.7}
+  .duty-notes-title{margin-top:10px}
+  .duty-slot.is-empty::after{content:''}
   .seat{box-shadow:none}
   .row-rail{background:none}
   body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -560,8 +662,9 @@ body.drawer-open{overflow:hidden}
 .drawer-body::-webkit-scrollbar-thumb{background:#e2d6c2;border-radius:999px}
 .drawer-body::-webkit-scrollbar-track{background:transparent}
 </style>
+<style id="printPageStyle">@page{size:A4 landscape;margin:8mm}</style>
 </head>
-<body>
+<body data-tab="seats">
 <header class="topbar">
   <div class="brand">
     <div class="brand-mark">座</div>
@@ -575,20 +678,26 @@ body.drawer-open{overflow:hidden}
     </div>
   </div>
   <div class="top-right">
-    <div class="chips" id="stats"></div>
+    <div class="chips seat-only" id="stats"></div>
     <div class="actions">
-      <button class="btn btn-ghost" id="shuffleBtn" type="button">随机排座</button>
-      <button class="btn btn-ghost" id="resetBtn" type="button">恢复初始</button>
-      <button class="btn btn-ghost" id="addGroupBtn" type="button">+ 添加组</button>
-      <button class="btn btn-ghost" id="addRowBtn" type="button">+ 添加排</button>
+      <button class="btn btn-ghost seat-only" id="shuffleBtn" type="button">随机排座</button>
+      <button class="btn btn-ghost seat-only" id="resetBtn" type="button">恢复初始</button>
+      <button class="btn btn-ghost seat-only" id="addGroupBtn" type="button">+ 添加组</button>
+      <button class="btn btn-ghost seat-only" id="addRowBtn" type="button">+ 添加排</button>
       <button class="btn btn-ghost" id="printBtn" type="button">打印</button>
-      <button class="btn btn-primary" id="rosterBtn" type="button">
+      <button class="btn btn-primary seat-only" id="rosterBtn" type="button">
         学生名单 <span class="badge" id="rosterCount">0</span>
       </button>
     </div>
   </div>
 </header>
 
+<nav class="tabs" id="tabs" role="tablist" aria-label="页面切换">
+  <button class="tab is-active" type="button" role="tab" aria-selected="true" data-tab="seats">座位安排</button>
+  <button class="tab" type="button" role="tab" aria-selected="false" data-tab="duty">值日安排</button>
+</nav>
+
+<div class="page" id="pageSeats" data-page="seats">
 <main class="stage">
   <section class="classroom" aria-label="教室座位表">
     <div class="blackboard">
@@ -618,6 +727,16 @@ body.drawer-open{overflow:hidden}
     <div class="hint">点击空座位可弹出学生列表安排落座；单击学生卡片选中、再点座位可换座；双击卡片编辑姓名；电脑端还支持直接拖拽。顶部可增删组/排，组头可调整列数，黑板班级名可直接点击修改。座位会自动保存到本机。</div>
   </section>
 </main>
+</div>
+
+<div class="page" id="pageDuty" data-page="duty" hidden>
+  <main class="duty-stage">
+    <section class="duty-sheet" id="dutySheet" aria-label="值日安排表"></section>
+    <div class="duty-tools">
+      <span>点击表格中任意文字即可修改；编辑内容会自动保存到本机，刷新不丢失。</span>
+    </div>
+  </main>
+</div>
 
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
 <aside class="drawer" id="drawer" aria-label="学生名单">
@@ -669,6 +788,7 @@ body.drawer-open{overflow:hidden}
     <ul class="student-list picker-list" id="pickerList"></ul>
     <div class="modal-actions">
       <div class="spacer"></div>
+      <button class="btn btn-ghost" id="pickerClear" type="button" hidden>清空该格</button>
       <button class="btn btn-ghost" id="cancelPicker" type="button">取消</button>
     </div>
   </div>
@@ -717,6 +837,73 @@ function displayOrder(st){
   for(var i = groupCount(st) - 1; i >= 0; i--) arr.push(i);
   return arr;
 }
+
+/* ===== 值日安排：默认内容（人员初始为空，点击单元格从学生名单选择） ===== */
+function emptyDutyRow(){
+  return [[], [], [], [], []];
+}
+
+function defaultDuty(){
+  return {
+    v: 2,
+    title: '卫生值日表（值周班长：）',
+    weekdays: ['星期一', '星期二', '星期三', '星期四', '星期五'],
+    areas: [
+      { name: '教室地面', rows: [emptyDutyRow(), emptyDutyRow(), emptyDutyRow(), emptyDutyRow()] },
+      { name: '卫生区', rows: [emptyDutyRow()] },
+      { name: '擦黑板、讲台', rows: [emptyDutyRow(), emptyDutyRow()] },
+      { name: '图书角、瓷砖空调', rows: [emptyDutyRow()] },
+      { name: '拉桌子', rows: [emptyDutyRow()] },
+      { name: '倒垃圾', rows: [emptyDutyRow()] }
+    ],
+    timeBlock: {
+      label: '8:20 前全部完成\n午餐前 12:40',
+      items: [
+        '早上 8:20 前，午餐 12:40 完成打扫。',
+        '黑板擦干净，讲台物品摆放整齐。',
+        '桌椅坐线，书包摆放到位。',
+        '瓷砖、图书角、空调都已擦干净。',
+        '劳动工具摆放整齐，垃圾已倒。'
+      ]
+    },
+    afternoon: { label: '下午放学前', text: '桌椅摆放整齐，地面无垃圾。' },
+    notes: [
+      '劳动委员 8:20 和 12:40 进行检查，并加扣分。没有打扫干净的找对应同学继续打扫。',
+      '组长安排组员每周轮换一次打扫项目。',
+      '劳动委员每周五前安排好下一周的值日人员。'
+    ]
+  };
+}
+
+function cloneDuty(d){ return JSON.parse(JSON.stringify(d)); }
+
+/* 存档校验：旧版（姓名被直接写在格子里）迁移时清空人员，其余文本尽量保留 */
+function normalizeDuty(d){
+  var def = defaultDuty();
+  if(!d || typeof d !== 'object') return def;
+  try{
+    if(!Array.isArray(d.areas)) return def;
+    d.areas.forEach(function(a){
+      if(!a || !Array.isArray(a.rows)) throw new Error('bad duty');
+    });
+    if(d.v === 2) return d;
+
+    if(Array.isArray(d.weekdays) && d.weekdays.length === def.weekdays.length) def.weekdays = d.weekdays;
+    if(Array.isArray(d.notes) && d.notes.length === def.notes.length) def.notes = d.notes;
+    if(d.timeBlock && Array.isArray(d.timeBlock.items) &&
+       d.timeBlock.items.length === def.timeBlock.items.length){
+      def.timeBlock.items = d.timeBlock.items;
+      if(typeof d.timeBlock.label === 'string' && d.timeBlock.label) def.timeBlock.label = d.timeBlock.label;
+    }
+    if(d.afternoon && typeof d.afternoon.text === 'string' && d.afternoon.text){
+      def.afternoon.text = d.afternoon.text;
+    }
+    d.areas.forEach(function(a, i){
+      if(a && typeof a.name === 'string' && a.name && def.areas[i]) def.areas[i].name = a.name;
+    });
+    return def;
+  }catch(err){ return def; }
+}
 var SEED_NAMES = [];
 
 var state = null;
@@ -726,6 +913,8 @@ var dragStudentId = null;
 var selectedStudentId = null;
 var pickerSeatId = null;
 var pickerExtraGroup = null;
+var pickerMode = 'seat';
+var pickerDutyPath = null;
 var justDragged = false;
 var uidSeq = 0;
 var toastTimer = null;
@@ -754,7 +943,8 @@ function makeInitialState(){
     students: students,
     assign: {},
     extraGroups: [],
-    layout: defaultLayout()
+    layout: defaultLayout(),
+    duty: defaultDuty()
   };
 }
 
@@ -1028,7 +1218,8 @@ function save(){
       students: state.students,
       assign: state.assign,
       extraGroups: state.extraGroups,
-      layout: state.layout
+      layout: state.layout,
+      duty: state.duty
     }));
   }catch(err){ /* 无痕模式等场景下忽略 */ }
 }
@@ -1065,13 +1256,15 @@ function loadSaved(){
       students: students,
       assign: data.assign,
       extraGroups: extraGroups,
-      layout: layout
+      layout: layout,
+      duty: normalizeDuty(data.duty)
     };
   }catch(err){ return null; }
 }
 
 /* 校验存档数据：清理无效座位分配，未落座学生保留在缓存区 */
 function normalizeState(st){
+  if(!st.duty) st.duty = defaultDuty();
   var seen = {};
   st.students.forEach(function(s){
     if(seen[s.id]) s.id = uid();
@@ -1295,6 +1488,180 @@ function render(){
   $('#classInput').value = state.className;
 }
 
+/* ===== 值日安排：渲染与编辑 ===== */
+function dutySet(path, value){
+  var d = state.duty;
+  var parts = String(path).split(':');
+  var key = parts[0];
+  var a = parseInt(parts[1], 10);
+  if(key === 'title'){ d.title = value; }
+  else if(key === 'weekday'){ d.weekdays[a] = value; }
+  else if(key === 'area'){ d.areas[a].name = value; }
+  else if(key === 'cell'){
+    var row = d.areas[a].rows[parseInt(parts[2], 10)];
+    row[parseInt(parts[3], 10)] = value;
+  }
+  else if(key === 'check'){ d.timeBlock.items[a] = value; }
+  else if(key === 'time'){ d.timeBlock.label = value; }
+  else if(key === 'afternoon'){ d.afternoon[parts[1]] = value; }
+  else if(key === 'note'){ d.notes[a] = value; }
+}
+
+/* 值日格内容：存的是学生 id 列表，显示时取当前姓名（改名自动同步） */
+function dutyCellNames(ids){
+  if(!Array.isArray(ids)) return '';
+  var names = [];
+  ids.forEach(function(id){
+    var stu = findStudent(id);
+    if(stu) names.push(stu.name);
+  });
+  return names.join('、');
+}
+
+function dutySlotHtml(ai, ri, ci, ids){
+  var names = dutyCellNames(ids);
+  return '<td class="duty-slot' + (names ? '' : ' is-empty') +
+    '" data-path="cell:' + ai + ':' + ri + ':' + ci + '">' + escapeHtml(names) + '</td>';
+}
+
+/* 取得（必要时创建）格子对应的学生 id 数组 */
+function dutyCellArray(path){
+  var parts = String(path).split(':');
+  var row = state.duty.areas[parseInt(parts[1], 10)].rows[parseInt(parts[2], 10)];
+  var ci = parseInt(parts[3], 10);
+  if(!Array.isArray(row[ci])) row[ci] = [];
+  return row[ci];
+}
+
+function renderDuty(){
+  var d = state.duty || (state.duty = defaultDuty());
+  var dayCount = d.weekdays.length;
+
+  var head = '<tr><th>时间</th>' + d.weekdays.map(function(w, i){
+    return '<th contenteditable="true" data-path="weekday:' + i + '">' + escapeHtml(w) + '</th>';
+  }).join('') + '</tr>';
+
+  var body = '';
+  d.areas.forEach(function(area, ai){
+    area.rows.forEach(function(cells, ri){
+      body += '<tr>';
+      if(ri === 0){
+        body += '<td class="duty-label" rowspan="' + area.rows.length +
+          '" contenteditable="true" data-path="area:' + ai + ':name">' + escapeHtml(area.name) + '</td>';
+      }
+      for(var ci = 0; ci < dayCount; ci++){
+        body += dutySlotHtml(ai, ri, ci, cells[ci]);
+      }
+      body += '</tr>';
+    });
+  });
+
+  var items = d.timeBlock.items.map(function(text, i){
+    return '<div class="check-item"><span class="num">' + (i + 1) + '.</span>' +
+      '<span contenteditable="true" data-path="check:' + i + '">' + escapeHtml(text) + '</span></div>';
+  }).join('');
+
+  body += '<tr>' +
+    '<td class="duty-label" contenteditable="true" data-path="time:label">' +
+      escapeHtml(d.timeBlock.label) + '</td>' +
+    '<td class="duty-check" colspan="' + dayCount + '">' + items + '</td>' +
+    '</tr>';
+  body += '<tr>' +
+    '<td class="duty-label" contenteditable="true" data-path="afternoon:label">' +
+      escapeHtml(d.afternoon.label) + '</td>' +
+    '<td class="duty-cell-left" colspan="' + dayCount +
+      '" contenteditable="true" data-path="afternoon:text">' + escapeHtml(d.afternoon.text) + '</td>' +
+    '</tr>';
+
+  $('#dutySheet').innerHTML =
+    '<h2 class="duty-title" contenteditable="true" data-path="title">' + escapeHtml(d.title) + '</h2>' +
+    '<table class="duty-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>' +
+    '<p class="duty-notes-title">注：</p>' +
+    '<ol class="duty-notes">' + d.notes.map(function(note, i){
+      return '<li contenteditable="true" data-path="note:' + i + '">' + escapeHtml(note) + '</li>';
+    }).join('') + '</ol>';
+}
+
+function bindDutyEvents(){
+  var sheet = $('#dutySheet');
+  var saveTimer = null;
+
+  /* 点击人员格 → 打开学生选择器（与座位页同一个选择器） */
+  sheet.addEventListener('click', function(e){
+    var slot = e.target.closest ? e.target.closest('.duty-slot') : null;
+    if(!slot) return;
+    openDutyPicker(slot.getAttribute('data-path'));
+  });
+
+  /* 输入过程中防抖保存，避免未失焦就关闭页面导致丢内容 */
+  sheet.addEventListener('input', function(e){
+    var el = e.target;
+    if(!el || !el.isContentEditable || !el.getAttribute('data-path')) return;
+    var path = el.getAttribute('data-path');
+    var value = (el.innerText || el.textContent || '').replace(/\u00a0/g, ' ');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      dutySet(path, value.trim());
+      save();
+    }, 400);
+  });
+
+  /* 失焦即保存（blur 不冒泡，用捕获阶段） */
+  sheet.addEventListener('blur', function(e){
+    var el = e.target;
+    if(!el || !el.isContentEditable || !el.getAttribute('data-path')) return;
+    var value = (el.innerText || el.textContent || '').replace(/\u00a0/g, ' ').trim();
+    dutySet(el.getAttribute('data-path'), value);
+    if(el.innerText !== value) el.innerText = value;
+    clearTimeout(saveTimer);
+    save();
+  }, true);
+
+  sheet.addEventListener('keydown', function(e){
+    var el = e.target;
+    if(!el || !el.isContentEditable || !el.getAttribute('data-path')) return;
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); el.blur(); }
+    if(e.key === 'Escape'){ e.preventDefault(); renderDuty(); }
+  });
+
+  sheet.addEventListener('paste', function(e){
+    var el = e.target;
+    if(!el || !el.isContentEditable || !el.getAttribute('data-path')) return;
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text') || '';
+    document.execCommand('insertText', false, text.replace(/\r?\n/g, ' '));
+  });
+}
+
+/* ===== 页签切换 ===== */
+var currentTab = 'seats';
+
+function switchTab(name){
+  name = (name === 'duty') ? 'duty' : 'seats';
+  currentTab = name;
+
+  var tabs = document.querySelectorAll('.tab');
+  for(var i = 0; i < tabs.length; i++){
+    var active = tabs[i].getAttribute('data-tab') === name;
+    tabs[i].classList.toggle('is-active', active);
+    tabs[i].setAttribute('aria-selected', active ? 'true' : 'false');
+  }
+
+  $('#pageSeats').hidden = (name !== 'seats');
+  $('#pageDuty').hidden = (name !== 'duty');
+  document.body.setAttribute('data-tab', name);
+  if($('#pickerBackdrop').classList.contains('show')) closePicker();
+
+  /* 打印纸张方向随页签切换：座位表横向，值日表纵向 */
+  $('#printPageStyle').textContent = (name === 'duty')
+    ? '@page{size:A4 portrait;margin:12mm}'
+    : '@page{size:A4 landscape;margin:8mm}';
+
+  if(name === 'duty' && document.body.classList.contains('drawer-open')) closeDrawer();
+  try{ history.replaceState(null, '', '#' + name); }catch(err){}
+  window.scrollTo(0, 0);
+}
+
 /* ===== 提示与弹窗 ===== */
 function toast(message){
   var el = $('#toast');
@@ -1325,11 +1692,15 @@ function closeEdit(){
 
 /* ===== 选座弹窗：点空座位弹出学生列表 ===== */
 function openPicker(seatId, extraGroup){
+  pickerMode = 'seat';
+  pickerDutyPath = null;
   pickerSeatId = seatId || null;
   pickerExtraGroup = (extraGroup === undefined || extraGroup === null) ? null : extraGroup;
   var label = pickerSeatId ? seatLabel(pickerSeatId)
     : (groupName(pickerExtraGroup) + ' 第' + (extraRowIndex() + 1) + '排 加座');
+  $('#pickerTitle').textContent = '选择学生';
   $('#pickerSeat').textContent = '安排到：' + label + '（从缓存区选择一名学生）';
+  $('#pickerClear').hidden = true;
   var unseated = unseatedStudents();
   var html = '';
   unseated.forEach(function(s, i){
@@ -1347,10 +1718,69 @@ function openPicker(seatId, extraGroup){
 function closePicker(){
   pickerSeatId = null;
   pickerExtraGroup = null;
+  pickerMode = 'seat';
+  pickerDutyPath = null;
+  $('#pickerClear').hidden = true;
   $('#pickerBackdrop').classList.remove('show');
 }
 
+/* ===== 值日格：点击从学生名单选人（含缓存区与已落座学生） ===== */
+function dutyPathLabel(path){
+  var p = String(path).split(':');
+  var area = state.duty.areas[parseInt(p[1], 10)];
+  var day = state.duty.weekdays[parseInt(p[3], 10)];
+  return (area ? area.name : '') + (day ? ' · ' + day : '');
+}
+
+function openDutyPicker(path){
+  if(!path) return;
+  pickerMode = 'duty';
+  pickerDutyPath = path;
+  pickerSeatId = null;
+  pickerExtraGroup = null;
+
+  var picked = dutyCellArray(path).slice();
+  $('#pickerTitle').textContent = '选择值日学生';
+  $('#pickerSeat').textContent = '安排到：' + dutyPathLabel(path) +
+    '（可点选多名，再次点击已选学生即可取消）';
+
+  var html = '';
+  if(!state.students.length){
+    html = '<li class="empty-tip">学生名单为空，请先在「学生名单」中导入或添加学生</li>';
+  } else {
+    var locById = {};
+    Object.keys(state.assign).forEach(function(seatId){
+      locById[state.assign[seatId]] = seatLabel(seatId);
+    });
+    state.students.forEach(function(s, i){
+      var on = picked.indexOf(s.id) >= 0;
+      html += '<li class="student-row' + (on ? ' is-picked' : '') + '" data-id="' + s.id + '">' +
+        '<span class="row-index">' + (i + 1) + '</span>' +
+        '<span class="student-name">' + escapeHtml(s.name) + '</span>' +
+        '<span class="student-seat">' + escapeHtml(locById[s.id] || '缓存区') + '</span>' +
+        '<span class="pick-mark">' + (on ? '✓' : '') + '</span>' +
+        '</li>';
+    });
+  }
+  $('#pickerClear').hidden = picked.length === 0;
+  $('#pickerList').innerHTML = html;
+  $('#pickerBackdrop').classList.add('show');
+}
+
+function toggleDutyStudent(studentId){
+  var path = pickerDutyPath;
+  if(!path) return;
+  var ids = dutyCellArray(path);
+  var idx = ids.indexOf(studentId);
+  if(idx >= 0) ids.splice(idx, 1);
+  else ids.push(studentId);
+  save();
+  renderDuty();
+  openDutyPicker(path);
+}
+
 function pickStudent(studentId){
+  if(pickerMode === 'duty'){ toggleDutyStudent(studentId); return; }
   var targetId = pickerSeatId;
   if(!targetId && pickerExtraGroup !== null){
     targetId = addExtraSeatToGroup(state, pickerExtraGroup);
@@ -1657,7 +2087,19 @@ function bindEvents(){
     toast('已恢复初始状态');
   });
 
-  $('#printBtn').addEventListener('click', function(){ window.print(); });
+  $('#printBtn').addEventListener('click', function(){
+    /* 先让正在编辑的单元格失焦，确保最新内容已保存再打印 */
+    if(document.activeElement && typeof document.activeElement.blur === 'function'){
+      document.activeElement.blur();
+    }
+    setTimeout(function(){ window.print(); }, 60);
+  });
+
+  /* 顶部页签切换 */
+  $('#tabs').addEventListener('click', function(e){
+    var tab = e.target.closest('.tab');
+    if(tab) switchTab(tab.getAttribute('data-tab'));
+  });
 
   $('#addGroupBtn').addEventListener('click', addGroup);
   $('#addRowBtn').addEventListener('click', addRow);
@@ -1976,6 +2418,15 @@ function bindEvents(){
     if(row && row.dataset.id) pickStudent(row.dataset.id);
   });
   $('#cancelPicker').addEventListener('click', closePicker);
+  $('#pickerClear').addEventListener('click', function(){
+    if(pickerMode !== 'duty' || !pickerDutyPath) return;
+    var ids = dutyCellArray(pickerDutyPath);
+    ids.length = 0;
+    save();
+    renderDuty();
+    closePicker();
+    toast('已清空该值日格');
+  });
   $('#pickerBackdrop').addEventListener('click', function(e){
     if(e.target === $('#pickerBackdrop')) closePicker();
   });
@@ -1987,6 +2438,9 @@ function init(){
   state = saved ? normalizeState(saved) : makeInitialState();
   bindEvents();
   render();
+  renderDuty();
+  bindDutyEvents();
+  switchTab(location.hash === '#duty' ? 'duty' : 'seats');
 }
 
 init();
